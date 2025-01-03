@@ -1,30 +1,28 @@
 // src/controllers/blogPostController.js
+import path from 'path';
 import BlogPost from '../models/BlogPost.js';
 
 export const createBlogPost = async (req, res) => {
     try {
         const { title, content, tags } = req.body;
-        const author = req.user._id;  // Author will be the logged-in user
+        const author = req.user._id;
 
-        // If images were uploaded, store their paths
-        const imagePaths = req.files ? req.files.map(file => file.path) : [];
+        const imagePaths = req.files ? req.files.map(file => path.join('uploads', file.filename)) : [];
 
-        // Create the new blog post
         const newBlogPost = new BlogPost({
             title,
             content,
             author,
             tags: tags ? tags.split(',') : [],
-            images: imagePaths
-        }); 
+            images: imagePaths,
+        });
 
-        // Save the blog post to the database
         await newBlogPost.save();
 
         res.status(201).json({ message: 'Blog post created successfully', newBlogPost });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error creating blog post' });
+        res.status(500).json({ message: 'Error creating blog post', error: error.message });
     }
 };
 

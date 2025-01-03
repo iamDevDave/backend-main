@@ -5,7 +5,8 @@ import blogPostRoutes from './routes/blogPostRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import { errorHandler } from './utils/errorHandler.js';
 import cors from 'cors';
-
+import path from 'path';
+import { fileURLToPath } from 'url';
 // Load environment variables
 dotenv.config();
 
@@ -14,6 +15,13 @@ const app = express();
 // Middleware to parse incoming request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Manually construct __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware to serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS
 app.use(cors({
