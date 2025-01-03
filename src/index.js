@@ -12,6 +12,9 @@ dotenv.config();
 
 const app = express();
 
+// Use path module to resolve the uploads folder
+app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
+
 // Middleware to parse incoming request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

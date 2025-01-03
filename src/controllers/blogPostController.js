@@ -5,36 +5,50 @@ import BlogPost from '../models/BlogPost.js';
 export const createBlogPost = async (req, res) => {
     try {
         const { title, content, tags } = req.body;
-        const author = req.user._id;
+        const author = req.user._id;  // Author will be the logged-in user
 
-        const imagePaths = req.files ? req.files.map(file => path.join('uploads', file.filename)) : [];
+        // If images were uploaded, store their relative paths
+        const imagePaths = req.files ? req.files.map(file => `uploads/${file.filename}`) : [];
 
+        // Create the new blog post
         const newBlogPost = new BlogPost({
             title,
             content,
             author,
             tags: tags ? tags.split(',') : [],
-            images: imagePaths,
+            images: imagePaths
         });
 
+        // Save the blog post to the database
         await newBlogPost.save();
 
         res.status(201).json({ message: 'Blog post created successfully', newBlogPost });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error creating blog post', error: error.message });
+        res.status(500).json({ message: 'Error creating blog post' });
     }
 };
 
+// src/controllers/blogPostController.js
 export const getBlogPosts = async (req, res) => {
     try {
         const blogPosts = await BlogPost.find().populate('author', 'name email');
-        res.status(200).json(blogPosts);
+        
+        // If your images field contains relative paths, ensure the URL is formatted correctly
+        const blogPostsWithImages = blogPosts.map(blog => {
+            return {
+                ...blog.toObject(),
+                images: blog.images.map(image => `http://localhost:5000/${image}`)
+            };
+        });
+
+        res.status(200).json(blogPostsWithImages);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching blog posts' });
     }
 };
+
 
 export const updateBlog = async (req, res) => {
     try {
@@ -90,6 +104,7 @@ export const getBlogPostById = async (req, res) => {
         res.status(500).json({ message: 'Error fetching blog post', error });
     }
 };
+
 export const deleteBlogPost = async (req, res) => {
     try {
         const { blogId } = req.params; // Extract blogId from URL params
